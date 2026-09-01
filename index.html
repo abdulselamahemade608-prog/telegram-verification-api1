@@ -1,1 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
 
+    <meta
+        name="viewport"
+        content="width=device-width,
+                 initial-scale=1.0,
+                 maximum-scale=1.0,
+                 user-scalable=no"
+    >
+
+    <title>Verification</title>
+
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            min-height: 100vh;
+            font-family: Arial, sans-serif;
+            background: var(--tg-theme-bg-color, #f4f7fb);
+            color: var(--tg-theme-text-color, #111827);
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            padding: 20px;
+        }
+
+        .card {
+            width: 100%;
+            max-width: 420px;
+
+            background: var(--tg-theme-secondary-bg-color, #ffffff);
+
+            border-radius: 25px;
+            padding: 30px 22px;
+
+            text-align: center;
+
+            box-shadow:
+                0 10px 35px rgba(0, 0, 0, 0.08);
+        }
+
+        .logo {
+            width: 90px;
+            height: 90px;
+
+            margin: 0 auto 20px;
+
+            border-radius: 50%;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            background: #eaf5ff;
+
+            font-size: 42px;
+        }
+
+        h1 {
+            font-size: 26px;
+            margin-bottom: 10px;
+        }
+
+        .description {
+            color: #667085;
+            line-height: 1.6;
+            margin-bottom: 22px;
+        }
+
+        .user-box {
+            background: rgba(127,127,127,.08);
+
+            padding: 15px;
+
+            border-radius: 15px;
+
+            margin-bottom: 20px;
+
+            line-height: 1.6;
+        }
+
+        .verify-btn {
+            width: 100%;
+
+            border: none;
+            outline: none;
+
+            border-radius: 15px;
+
+            padding: 16px;
+
+            font-size: 17px;
+            font-weight: bold;
+
+            background: #229ed9;
+            color: white;
+
+            cursor: pointer;
+
+            transition: .2s;
+        }
+
+        .verify-btn:active {
+            transform: scale(.97);
+        }
+
+        .verify-btn:disabled {
+            opacity: .6;
+            cursor: not-allowed;
+        }
+
+        .status {
+            display: none;
+
+            margin-top: 18px;
+
+            padding: 15px;
+
+            border-radius: 15px;
+
+            line-height: 1.5;
+        }
+
+        .loading {
+            display: block;
+
+            background: #f2f4f7;
+            color: #475467;
+        }
+
+        .success {
+            display: block;
+
+            background: #ecfdf3;
+            color: #027a48;
+        }
+
+        .error {
+            display: block;
+
+            background: #fef3f2;
+            color: #b42318;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="card">
+
+    <div class="logo">
+        🔐
+    </div>
+
+    <h1>
+        Verification
+    </h1>
+
+    <p class="description">
+        Complete the verification below
+        to continue.
+    </p>
+
+    <div
+        class="user-box"
+        id="userInfo"
+    >
+        Checking Telegram account...
+    </div>
+
+    <button
+        class="verify-btn"
+        id="verifyBtn"
+        onclick="verifyUser()"
+    >
+        ✅ Verify Now
+    </button>
+
+    <div
+        class="status"
+        id="status"
+    ></div>
+
+</div>
+
+
+<script>
+
+    // ==========================================
+    // Telegram WebApp
+    // ==========================================
+
+    const tg = window.Telegram.WebApp;
+
+    tg.ready();
+    tg.expand();
+
+
+    // ==========================================
+    // Vercel API
+    // ==========================================
+
+    const API_URL =
+        "PASTE_YOUR_VERCEL_URL_HERE/api/verify";
+
+
+    // ==========================================
+    // Telegram User
+    // ==========================================
+
+    const user =
+        tg.initDataUnsafe &&
+        tg.initDataUnsafe.user
+            ? tg.initDataUnsafe.user
+            : null;
+
+
+    if (user) {
+
+        const name =
+            user.first_name || "Telegram User";
+
+        const username =
+            user.username
+                ? "@" + user.username
+                : "No username";
+
+        document.getElementById("userInfo").innerHTML =
+            "👤 <b>" +
+            escapeHTML(name) +
+            "</b><br>" +
+
+            "<small>" +
+            escapeHTML(username) +
+            "</small>";
+
+    } else {
+
+        document.getElementById("userInfo").innerHTML =
+            "⚠️ Please open this app from Telegram.";
+    }
+
+
+    // ==========================================
+    // Verify User
+    // ==========================================
+
+    async function verifyUser() {
+
+        const button =
+            document.getElementById("verifyBtn");
+
+        button.disabled = true;
+
+        button.innerText =
+            "⏳ Verifying...";
+
+
+        showStatus(
+            "🔍 Checking your Telegram account...",
+            "loading"
+        );
+
+
+        try {
+
+            if (!tg.initData) {
+
+                throw new Error(
+                    "Telegram data is missing."
+                );
+            }
+
+
+            // ==================================
+            // Send Telegram initData
+            // ==================================
+
+            const response =
+                await fetch(API_URL, {
+
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body: JSON.stringify({
+
+                        initData:
+                            tg.initData
+
+                    })
+                });
+
+
+            const result =
+                await response.json();
+
+
+            // ==================================
+            // PASS
+            // ==================================
+
+            if (
+                response.ok &&
+                result.status === "PASS"
+            ) {
+
+                showStatus(
+                    "✅ Verification successful!<br>" +
+                    "You can return to Telegram.",
+                    "success"
+                );
+
+                button.innerText =
+                    "✅ Verified";
+
+
+                // Send result to Telegram Bot
+                tg.sendData(
+                    JSON.stringify({
+                        status: "PASS",
+                        user_id: user
+                            ? user.id
+                            : null
+                    })
+                );
+
+
+                return;
+            }
+
+
+            // ==================================
+            // FAIL
+            // ==================================
+
+            showStatus(
+                "❌ Verification failed.<br>" +
+                "Please try again.",
+                "error"
+            );
+
+            button.disabled = false;
+
+            button.innerText =
+                "🔄 Try Again";
+
+
+        } catch (error) {
+
+            console.error(error);
+
+            showStatus(
+                "⚠️ Connection error.<br>" +
+                "Please try again.",
+                "error"
+            );
+
+            button.disabled = false;
+
+            button.innerText =
+                "🔄 Try Again";
+        }
+    }
+
+
+    // ==========================================
+    // Status Message
+    // ==========================================
+
+    function showStatus(
+        text,
+        type
+    ) {
+
+        const status =
+            document.getElementById("status");
+
+        status.innerHTML = text;
+
+        status.className =
+            "status " + type;
+    }
+
+
+    // ==========================================
+    // HTML Escape
+    // ==========================================
+
+    function escapeHTML(value) {
+
+        return String(value)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(
+                /'/g,
+                "&#039;"
+            );
+    }
+
+</script>
+
+</body>
+</html>
