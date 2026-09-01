@@ -3,13 +3,16 @@ import hmac
 import hashlib
 import urllib.parse
 
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 
 app = Flask(__name__)
 
 
-def validate_init_data(init_data):
+# ==========================================
+# Telegram Mini App Init Data Verification
+# ==========================================
 
+def validate_init_data(init_data):
     bot_token = os.environ.get("BOT_TOKEN")
 
     if not bot_token:
@@ -57,14 +60,39 @@ def validate_init_data(init_data):
         return None
 
 
+# ==========================================
+# Mini App Home Page
+# ==========================================
+
 @app.route("/", methods=["GET"])
 def home():
 
+    base_dir = os.path.dirname(
+        os.path.dirname(os.path.abspath(__file__))
+    )
+
+    return send_from_directory(
+        base_dir,
+        "index.html"
+    )
+
+
+# ==========================================
+# API Status
+# ==========================================
+
+@app.route("/api/status", methods=["GET"])
+def api_status():
+
     return jsonify({
-        "status": "online",
-        "service": "Telegram Verification API"
+        "service": "Telegram Verification API",
+        "status": "online"
     })
 
+
+# ==========================================
+# Verification API
+# ==========================================
 
 @app.route("/api/verify", methods=["POST"])
 def verify():
