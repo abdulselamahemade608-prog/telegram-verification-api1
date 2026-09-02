@@ -11,30 +11,13 @@ app = Flask(__name__)
 
 
 # ==========================================
-# CONFIGURATION
+# CONFIG
 # ==========================================
 
-BOT_TOKEN = os.environ.get(
-    "BOT_TOKEN",
-    ""
-).strip()
+BOT_TOKEN = os.environ.get("BOT_TOKEN", "").strip()
 
-# Verification data lifetime
-VERIFY_MAX_AGE = 3600
-
-
-# ==========================================
-# IN-MEMORY VERIFICATION STORE
-# ==========================================
-#
-# NOTE:
-# This is temporary storage.
-# Vercel Serverless Functions are stateless,
-# so for permanent verification status use
-# a database later.
-#
-
-verified_users = set()
+# Maximum age of Telegram initData
+MAX_AUTH_AGE = 3600  # 1 hour
 
 
 # ==========================================
@@ -42,7 +25,6 @@ verified_users = set()
 # ==========================================
 
 def validate_init_data(init_data):
-
     if not BOT_TOKEN:
         return None, "BOT_TOKEN is not configured."
 
@@ -50,7 +32,7 @@ def validate_init_data(init_data):
         return None, "Telegram initData is empty."
 
     try:
-
+        # Parse Telegram initData
         parsed = urllib.parse.parse_qsl(
             init_data,
             keep_blank_values=True
@@ -58,10 +40,8 @@ def validate_init_data(init_data):
 
         data = dict(parsed)
 
-        received_hash = data.pop(
-            "hash",
-            None
-        )
+        # Get Telegram hash
+        received_hash = data.pop("hash", None)
 
         if not received_hash:
             return None, "Telegram hash is missing."
@@ -69,9 +49,7 @@ def validate_init_data(init_data):
         # Telegram data-check-string
         data_check_string = "\n".join(
             f"{key}={value}"
-            for key, value in sorted(
-                data.items()
-            )
+            for key, value in sorted(data.items())
         )
 
         # Secret key
@@ -81,7 +59,7 @@ def validate_init_data(init_data):
             digestmod=hashlib.sha256
         ).digest()
 
-        # Calculated hash
+        # Calculate hash
         calculated_hash = hmac.new(
             key=secret_key,
             msg=data_check_string.encode("utf-8"),
@@ -93,88 +71,36 @@ def validate_init_data(init_data):
             calculated_hash,
             received_hash
         ):
-            return None, "Invalid Telegram verification data."
+            return None, "Telegram verification failed."
 
-        # ======================================
-        # AUTH DATE
-        # ======================================
+        # ==========================================
+        # CHECK AUTH DATE
+        # ==========================================
 
-        auth_date = data.get(
-            "auth_date"
-        )
+        auth_date = data.get("auth_date")
 
-        if not auth_date:
-            return None, "auth_date is missing."
+        if auth_date:
+            try:
+                auth_time = int(auth_date)
 
-        try:
+                if time.time() - auth_time > MAX_AUTH_AGE:
+                    return None, "Verification data expired."
 
-            auth_time = int(
-                auth_date
-            )
-
-        except ValueError:
-
-            return None, "Invalid auth_date."
-
-        # Expired?
-        if time.time() - auth_time > VERIFY_MAX_AGE:
-
-            return None, (
-                "Telegram verification data expired."
-            )
+            except ValueError:
+                return None, "Invalid auth_date."
 
         return data, None
 
     except Exception as error:
-
-        print(
-            "VALIDATION ERROR:",
-            repr(error)
-        )
-
-        return None, "Verification validation error."
-
-
-# ==========================================
-# GET TELEGRAM USER
-# ==========================================
-
-def get_telegram_user(data):
-
-    if not data:
-        return None
-
-    user_string = data.get(
-        "user"
-    )
-
-    if not user_string:
-        return None
-
-    try:
-
-        return json.loads(
-            user_string
-        )
-
-    except Exception as error:
-
-        print(
-            "USER JSON ERROR:",
-            repr(error)
-        )
-
-        return None
+        print("VALIDATION ERROR:", repr(error))
+        return None, "Validation error."
 
 
 # ==========================================
 # HOME
 # ==========================================
 
-@app.route(
-    "/",
-    methods=["GET"]
-)
+@app.route("/", methods=["GET"])
 def home():
 
     base_dir = os.path.dirname(
@@ -193,23 +119,13 @@ def home():
 # STATUS
 # ==========================================
 
-@app.route(
-    "/api/status",
-    methods=["GET"]
-)
-def api_status():
+@app.route("/api/status", methods=["GET"])
+def status():
 
     return jsonify({
-
-        "service":
-            "Telegram Verification API",
-
-        "status":
-            "online",
-
-        "bot_token_configured":
-            bool(BOT_TOKEN)
-
+        "service": "Telegram Verification API",
+        "status": "online",
+        "bot_token_configured": bool(BOT_TOKEN)
     })
 
 
@@ -217,10 +133,7 @@ def api_status():
 # VERIFY
 # ==========================================
 
-@app.route(
-    "/api/verify",
-    methods=["POST"]
-)
+@app.route("/api/verify", methods=["POST"])
 def verify():
 
     try:
@@ -232,151 +145,109 @@ def verify():
         if not body:
 
             return jsonify({
-
-                "success":
-                    False,
-
-                "status":
-                    "FAIL",
-
-                "message":
-                    "Request body is missing."
-
+                "success": False,
+                "status": "FAIL",
+                "message": "Request body is missing."
             }), 400
 
+        # ==========================================
+        # GET INIT DATA
+        # ==========================================
 
         init_data = body.get(
             "initData",
             ""
         )
 
-
-        # ==================================
+        # ==========================================
         # VALIDATE TELEGRAM DATA
-        # ==================================
+        # ==========================================
 
-        telegram_data, error = (
-            validate_init_data(
-                init_data
-            )
+        telegram_data, error = validate_init_data(
+            init_data
         )
-
 
         if telegram_data is None:
 
             return jsonify({
-
-                "success":
-                    False,
-
-                "status":
-                    "FAIL",
-
-                "message":
-                    error
-
+                "success": False,
+                "status": "FAIL",
+                "message": error
             }), 403
 
+        # ==========================================
+        # GET TELEGRAM USER
+        # ==========================================
 
-        # ==================================
-        # GET USER
-        # ==================================
+        user_data = {}
 
-        user = get_telegram_user(
-            telegram_data
-        )
+        if "user" in telegram_data:
 
+            try:
 
-        if not user:
+                user_data = json.loads(
+                    telegram_data["user"]
+                )
 
-            return jsonify({
+            except Exception as error:
 
-                "success":
-                    False,
+                print(
+                    "USER JSON ERROR:",
+                    repr(error)
+                )
 
-                "status":
-                    "FAIL",
+        user_id = user_data.get("id")
 
-                "message":
-                    "Telegram user data not found."
-
-            }), 400
-
-
-        user_id = user.get(
-            "id"
-        )
-
-
-        first_name = user.get(
+        first_name = user_data.get(
             "first_name",
             "User"
         )
 
-
-        username = user.get(
+        username = user_data.get(
             "username",
             ""
         )
 
+        # ==========================================
+        # USER ID CHECK
+        # ==========================================
 
         if not user_id:
 
             return jsonify({
-
-                "success":
-                    False,
-
-                "status":
-                    "FAIL",
-
-                "message":
-                    "Telegram user ID not found."
-
+                "success": False,
+                "status": "FAIL",
+                "message": "Telegram user ID not found."
             }), 400
 
-
-        # ==================================
+        # ==========================================
         # SUCCESS
-        # ==================================
-
-        verified_users.add(
-            int(user_id)
-        )
-
-
-        print(
-            "VERIFICATION PASS:",
-            user_id
-        )
-
+        # ==========================================
+        #
+        # IMPORTANT:
+        # Flask DOES NOT send Main Menu.
+        # Flask DOES NOT create keyboard.
+        #
+        # Telebot Creator will handle Main Menu.
+        # ==========================================
 
         return jsonify({
 
-            "success":
-                True,
+            "success": True,
 
-            "status":
-                "PASS",
+            "status": "PASS",
 
-            "message":
-                "Verification successful.",
+            "verified": True,
+
+            "message": "Verification successful.",
 
             "user": {
-
-                "id":
-                    user_id,
-
-                "first_name":
-                    first_name,
-
-                "username":
-                    username
-
+                "id": user_id,
+                "first_name": first_name,
+                "username": username
             }
 
         }), 200
-
 
     except Exception as error:
 
@@ -385,100 +256,25 @@ def verify():
             repr(error)
         )
 
-
         return jsonify({
-
-            "success":
-                False,
-
-            "status":
-                "FAIL",
-
-            "message":
-                "Internal server error."
-
+            "success": False,
+            "status": "FAIL",
+            "message": "Internal server error."
         }), 500
 
 
 # ==========================================
-# CHECK VERIFICATION
-# ==========================================
-
-@app.route(
-    "/api/check",
-    methods=["GET"]
-)
-def check_verification():
-
-    user_id = request.args.get(
-        "user_id",
-        ""
-    )
-
-    if not user_id:
-
-        return jsonify({
-
-            "success":
-                False,
-
-            "verified":
-                False,
-
-            "message":
-                "user_id is required."
-
-        }), 400
-
-
-    try:
-
-        user_id = int(
-            user_id
-        )
-
-    except ValueError:
-
-        return jsonify({
-
-            "success":
-                False,
-
-            "verified":
-                False,
-
-            "message":
-                "Invalid user_id."
-
-        }), 400
-
-
-    return jsonify({
-
-        "success":
-            True,
-
-        "verified":
-            user_id in verified_users
-
-    })
-
-
-# ==========================================
-# RUN
+# VERCEL ENTRY
 # ==========================================
 
 if __name__ == "__main__":
 
     app.run(
-
         host="0.0.0.0",
-
         port=int(
             os.environ.get(
                 "PORT",
                 5000
             )
         )
-
-            )
+    )
