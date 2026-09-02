@@ -1,294 +1,405 @@
 <!DOCTYPE html>
+
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
 
-    <meta
-        name="viewport"
-        content="width=device-width,
-                 initial-scale=1.0,
-                 maximum-scale=1.0,
-                 user-scalable=no"
-    >
+<meta charset="UTF-8">
 
-    <title>Verification</title>
+<meta
+    name="viewport"
+    content="width=device-width,
+    initial-scale=1.0,
+    maximum-scale=1.0,
+    user-scalable=no"
+>
 
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+<title>Verification</title>
 
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
 
-        body {
-            min-height: 100vh;
-            font-family: Arial, sans-serif;
-            background: var(--tg-theme-bg-color, #f4f7fb);
-            color: var(--tg-theme-text-color, #111827);
+<style>
 
-            display: flex;
-            align-items: center;
-            justify-content: center;
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
 
-            padding: 20px;
-        }
+body {
 
-        .card {
-            width: 100%;
-            max-width: 420px;
+    min-height: 100vh;
 
-            background: var(--tg-theme-secondary-bg-color, #ffffff);
+    font-family:
+        Arial,
+        sans-serif;
 
-            border-radius: 25px;
-            padding: 30px 22px;
+    background:
+        #1f2d3d;
 
-            text-align: center;
+    display: flex;
 
-            box-shadow:
-                0 10px 35px rgba(0, 0, 0, 0.08);
-        }
+    justify-content: center;
 
-        .logo {
-            width: 90px;
-            height: 90px;
+    align-items: center;
 
-            margin: 0 auto 20px;
+    padding: 20px;
 
-            border-radius: 50%;
+}
 
-            display: flex;
-            align-items: center;
-            justify-content: center;
+.container {
 
-            background: #eaf5ff;
+    width: 100%;
 
-            font-size: 42px;
-        }
+    max-width: 440px;
 
-        h1 {
-            font-size: 26px;
-            margin-bottom: 10px;
-        }
+    background:
+        #111c27;
 
-        .description {
-            color: #667085;
-            line-height: 1.6;
-            margin-bottom: 22px;
-        }
+    border-radius: 28px;
 
-        .user-box {
-            background: rgba(127,127,127,.08);
+    padding:
+        42px 22px 30px;
 
-            padding: 15px;
+    text-align: center;
 
-            border-radius: 15px;
+    box-shadow:
+        0 20px 50px
+        rgba(0,0,0,0.25);
 
-            margin-bottom: 20px;
+}
 
-            line-height: 1.6;
-        }
+.logo {
 
-        .verify-btn {
-            width: 100%;
+    width: 90px;
 
-            border: none;
-            outline: none;
+    height: 90px;
 
-            border-radius: 15px;
+    border-radius: 50%;
 
-            padding: 16px;
+    background:
+        #eef6ff;
 
-            font-size: 17px;
-            font-weight: bold;
+    display: flex;
 
-            background: #229ed9;
-            color: white;
+    align-items: center;
 
-            cursor: pointer;
+    justify-content: center;
 
-            transition: .2s;
-        }
+    margin:
+        0 auto 25px;
 
-        .verify-btn:active {
-            transform: scale(.97);
-        }
+    font-size: 45px;
 
-        .verify-btn:disabled {
-            opacity: .6;
-            cursor: not-allowed;
-        }
+}
 
-        .status {
-            display: none;
+h1 {
 
-            margin-top: 18px;
+    color: white;
 
-            padding: 15px;
+    font-size: 36px;
 
-            border-radius: 15px;
+    margin-bottom: 15px;
 
-            line-height: 1.5;
-        }
+}
 
-        .loading {
-            display: block;
+.subtitle {
 
-            background: #f2f4f7;
-            color: #475467;
-        }
+    color: #7d8999;
 
-        .success {
-            display: block;
+    font-size: 19px;
 
-            background: #ecfdf3;
-            color: #027a48;
-        }
+    line-height: 1.6;
 
-        .error {
-            display: block;
+    margin-bottom: 28px;
 
-            background: #fef3f2;
-            color: #b42318;
-        }
-    </style>
+}
+
+.user-card {
+
+    background:
+        #1b2733;
+
+    border-radius: 20px;
+
+    padding: 20px;
+
+    margin-bottom: 25px;
+
+    color: white;
+
+}
+
+.user-name {
+
+    font-size: 23px;
+
+    font-weight: bold;
+
+    margin-bottom: 8px;
+
+}
+
+.username {
+
+    font-size: 18px;
+
+    color: #e5e7eb;
+
+}
+
+.verify-btn {
+
+    width: 100%;
+
+    border: none;
+
+    border-radius: 18px;
+
+    padding: 18px;
+
+    background:
+        #229ed9;
+
+    color: white;
+
+    font-size: 22px;
+
+    font-weight: bold;
+
+    cursor: pointer;
+
+}
+
+.verify-btn:disabled {
+
+    opacity: 0.65;
+
+    cursor: default;
+
+}
+
+.status {
+
+    display: none;
+
+    margin-top: 22px;
+
+    padding: 18px;
+
+    border-radius: 18px;
+
+    font-size: 18px;
+
+    line-height: 1.5;
+
+}
+
+.loading {
+
+    display: block;
+
+    background: #25313d;
+
+    color: #d0d5dd;
+
+}
+
+.success {
+
+    display: block;
+
+    background: #063b2a;
+
+    color: #6ce9a6;
+
+}
+
+.error {
+
+    display: block;
+
+    background: #421d20;
+
+    color: #ffb4b4;
+
+}
+
+</style>
+
 </head>
+
 
 <body>
 
-<div class="card">
+
+<div class="container">
+
 
     <div class="logo">
         🔐
     </div>
 
+
     <h1>
         Verification
     </h1>
 
-    <p class="description">
-        Complete the verification below
-        to continue.
+
+    <p class="subtitle">
+        Complete the verification below to continue.
     </p>
 
+
     <div
-        class="user-box"
+        class="user-card"
         id="userInfo"
     >
-        Checking Telegram account...
+
+        Loading Telegram account...
+
     </div>
+
 
     <button
         class="verify-btn"
         id="verifyBtn"
-        onclick="verifyUser()"
+        onclick="verifyAccount()"
     >
+
         ✅ Verify Now
+
     </button>
+
 
     <div
         class="status"
         id="status"
     ></div>
 
+
 </div>
 
 
 <script>
 
-    // ==========================================
-    // Telegram WebApp
-    // ==========================================
 
-    const tg = window.Telegram.WebApp;
-
-    tg.ready();
-    tg.expand();
+const tg =
+    window.Telegram.WebApp;
 
 
-    // ==========================================
-    // Vercel API
-    // ==========================================
+tg.ready();
 
-    const API_URL =
-        "PASTE_YOUR_VERCEL_URL_HERE/api/verify";
+tg.expand();
 
 
-    // ==========================================
-    // Telegram User
-    // ==========================================
-
-    const user =
-        tg.initDataUnsafe &&
-        tg.initDataUnsafe.user
-            ? tg.initDataUnsafe.user
-            : null;
+const user =
+    tg.initDataUnsafe &&
+    tg.initDataUnsafe.user;
 
 
-    if (user) {
+const userInfo =
+    document.getElementById(
+        "userInfo"
+    );
 
-        const name =
-            user.first_name || "Telegram User";
 
-        const username =
-            user.username
-                ? "@" + user.username
-                : "No username";
+const verifyBtn =
+    document.getElementById(
+        "verifyBtn"
+    );
 
-        document.getElementById("userInfo").innerHTML =
-            "👤 <b>" +
-            escapeHTML(name) +
-            "</b><br>" +
 
-            "<small>" +
-            escapeHTML(username) +
-            "</small>";
+const statusBox =
+    document.getElementById(
+        "status"
+    );
 
-    } else {
 
-        document.getElementById("userInfo").innerHTML =
-            "⚠️ Please open this app from Telegram.";
+// ==========================================
+// SHOW TELEGRAM USER
+// ==========================================
+
+if (user) {
+
+    const firstName =
+        user.first_name ||
+        "User";
+
+    const username =
+        user.username
+        ? "@" + user.username
+        : "No username";
+
+    userInfo.innerHTML =
+
+        "<div class='user-name'>👤 "
+        + escapeHTML(firstName)
+        + "</div>"
+
+        +
+
+        "<div class='username'>"
+        + escapeHTML(username)
+        + "</div>";
+
+} else {
+
+    userInfo.innerHTML =
+        "⚠️ Open this Mini App from Telegram.";
+
+}
+
+
+// ==========================================
+// VERIFY ACCOUNT
+// ==========================================
+
+async function verifyAccount() {
+
+
+    // --------------------------------------
+    // Check Telegram initData
+    // --------------------------------------
+
+    if (!tg.initData) {
+
+        showStatus(
+            "❌ Telegram verification data was not found.",
+            "error"
+        );
+
+        return;
     }
 
 
-    // ==========================================
-    // Verify User
-    // ==========================================
+    // --------------------------------------
+    // Loading
+    // --------------------------------------
 
-    async function verifyUser() {
+    verifyBtn.disabled = true;
 
-        const button =
-            document.getElementById("verifyBtn");
-
-        button.disabled = true;
-
-        button.innerText =
-            "⏳ Verifying...";
+    verifyBtn.innerText =
+        "⏳ Verifying...";
 
 
-        showStatus(
-            "🔍 Checking your Telegram account...",
-            "loading"
-        );
+    showStatus(
+        "🔍 Verifying your Telegram account...",
+        "loading"
+    );
 
 
-        try {
-
-            if (!tg.initData) {
-
-                throw new Error(
-                    "Telegram data is missing."
-                );
-            }
+    try {
 
 
-            // ==================================
-            // Send Telegram initData
-            // ==================================
+        // ----------------------------------
+        // Send data to Vercel
+        // ----------------------------------
 
-            const response =
-                await fetch(API_URL, {
+        const response =
+            await fetch(
+                "/api/verify",
+                {
 
                     method: "POST",
 
@@ -297,124 +408,198 @@
                             "application/json"
                     },
 
-                    body: JSON.stringify({
+                    body:
+                        JSON.stringify({
 
-                        initData:
-                            tg.initData
+                            initData:
+                                tg.initData
 
-                    })
-                });
+                        })
 
-
-            const result =
-                await response.json();
-
-
-            // ==================================
-            // PASS
-            // ==================================
-
-            if (
-                response.ok &&
-                result.status === "PASS"
-            ) {
-
-                showStatus(
-                    "✅ Verification successful!<br>" +
-                    "You can return to Telegram.",
-                    "success"
-                );
-
-                button.innerText =
-                    "✅ Verified";
+                }
+            );
 
 
-                // Send result to Telegram Bot
+        // ----------------------------------
+        // Read response
+        // ----------------------------------
+
+        const data =
+            await response.json();
+
+
+        // ----------------------------------
+        // PASS
+        // ----------------------------------
+
+        if (
+            response.ok &&
+            data.success === true &&
+            data.status === "PASS"
+        ) {
+
+
+            showStatus(
+                "✅ Verification successful!",
+                "success"
+            );
+
+
+            verifyBtn.innerText =
+                "✅ Verified";
+
+
+            // --------------------------------
+            // Send PASS to Telegram
+            // --------------------------------
+
+            try {
+
                 tg.sendData(
                     JSON.stringify({
-                        status: "PASS",
-                        user_id: user
-                            ? user.id
-                            : null
+
+                        status:
+                            "PASS",
+
+                        user_id:
+                            user?.id || null
+
                     })
                 );
 
+            } catch (e) {
 
-                return;
+                console.log(
+                    "sendData:",
+                    e
+                );
+
             }
 
 
-            // ==================================
-            // FAIL
-            // ==================================
-
-            showStatus(
-                "❌ Verification failed.<br>" +
-                "Please try again.",
-                "error"
-            );
-
-            button.disabled = false;
-
-            button.innerText =
-                "🔄 Try Again";
-
-
-        } catch (error) {
-
-            console.error(error);
-
-            showStatus(
-                "⚠️ Connection error.<br>" +
-                "Please try again.",
-                "error"
-            );
-
-            button.disabled = false;
-
-            button.innerText =
-                "🔄 Try Again";
         }
-    }
+
+        // ----------------------------------
+        // FAIL
+        // ----------------------------------
+
+        else {
 
 
-    // ==========================================
-    // Status Message
-    // ==========================================
+            showStatus(
 
-    function showStatus(
-        text,
-        type
-    ) {
+                "❌ Verification failed.\n\n"
+                +
+                (
+                    data.message ||
+                    "Please try again."
+                ),
 
-        const status =
-            document.getElementById("status");
+                "error"
 
-        status.innerHTML = text;
-
-        status.className =
-            "status " + type;
-    }
-
-
-    // ==========================================
-    // HTML Escape
-    // ==========================================
-
-    function escapeHTML(value) {
-
-        return String(value)
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;")
-            .replace(
-                /'/g,
-                "&#039;"
             );
+
+
+            verifyBtn.disabled =
+                false;
+
+            verifyBtn.innerText =
+                "🔄 Try Again";
+
+        }
+
+
     }
+
+    catch (error) {
+
+
+        console.error(
+            "Verification error:",
+            error
+        );
+
+
+        showStatus(
+
+            "⚠️ Connection error.\n"
+            +
+            "Please try again.",
+
+            "error"
+
+        );
+
+
+        verifyBtn.disabled =
+            false;
+
+        verifyBtn.innerText =
+            "🔄 Try Again";
+
+    }
+
+}
+
+
+// ==========================================
+// STATUS
+// ==========================================
+
+function showStatus(
+    text,
+    type
+) {
+
+    statusBox.innerText =
+        text;
+
+    statusBox.className =
+        "status " + type;
+
+}
+
+
+// ==========================================
+// ESCAPE HTML
+// ==========================================
+
+function escapeHTML(
+    value
+) {
+
+    return String(value)
+
+        .replace(
+            /&/g,
+            "&amp;"
+        )
+
+        .replace(
+            /</g,
+            "&lt;"
+        )
+
+        .replace(
+            />/g,
+            "&gt;"
+        )
+
+        .replace(
+            /"/g,
+            "&quot;"
+        )
+
+        .replace(
+            /'/g,
+            "&#039;"
+        );
+
+}
 
 </script>
 
+
 </body>
+
 </html>
