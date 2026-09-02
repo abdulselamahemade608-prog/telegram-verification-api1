@@ -9,14 +9,17 @@ from flask import Flask, request, jsonify, send_from_directory
 
 app = Flask(__name__)
 
-
-# ==========================================
-# CONFIG
-# ==========================================
-
 BOT_TOKEN = os.environ.get("BOT_TOKEN", "").strip()
-
 MAX_AUTH_AGE = 3600
+
+
+# ==========================================
+# IN-MEMORY VERIFIED USERS
+# ==========================================
+# Important:
+# Vercel serverless instances are not permanent.
+# For production, replace this with Firebase/Supabase/etc.
+verified_users = {}
 
 
 # ==========================================
@@ -68,21 +71,14 @@ def validate_init_data(init_data):
         ):
             return None, "Telegram verification failed."
 
-        # ==========================================
-        # AUTH DATE
-        # ==========================================
-
         auth_date = data.get("auth_date")
 
         if not auth_date:
             return None, "auth_date is missing."
 
         try:
-
             auth_time = int(auth_date)
-
         except ValueError:
-
             return None, "Invalid auth_date."
 
         age = time.time() - auth_time
@@ -132,13 +128,9 @@ def home():
 def status():
 
     return jsonify({
-
         "service": "Telegram Verification API",
-
         "status": "online",
-
         "bot_token_configured": bool(BOT_TOKEN)
-
     })
 
 
@@ -151,60 +143,34 @@ def verify():
 
     try:
 
-        body = request.get_json(
-            silent=True
-        )
+        body = request.get_json(silent=True)
 
         if not body:
 
             return jsonify({
-
                 "success": False,
-
                 "status": "FAIL",
-
+                "verified": False,
                 "message": "Request body is missing."
-
             }), 400
-
-
-        # ==========================================
-        # GET INIT DATA
-        # ==========================================
 
         init_data = body.get(
             "initData",
             ""
         )
 
-
-        # ==========================================
-        # VALIDATE TELEGRAM
-        # ==========================================
-
         telegram_data, error = validate_init_data(
             init_data
         )
 
-
         if telegram_data is None:
 
             return jsonify({
-
                 "success": False,
-
                 "status": "FAIL",
-
                 "verified": False,
-
                 "message": error
-
             }), 403
-
-
-        # ==========================================
-        # GET USER DATA
-        # ==========================================
 
         user_data = {}
 
@@ -216,29 +182,14 @@ def verify():
                     telegram_data["user"]
                 )
 
-            except Exception as error:
-
-                print(
-                    "USER JSON ERROR:",
-                    repr(error)
-                )
+            except Exception:
 
                 return jsonify({
-
                     "success": False,
-
                     "status": "FAIL",
-
                     "verified": False,
-
                     "message": "Invalid Telegram user data."
-
                 }), 400
-
-
-        # ==========================================
-        # USER INFORMATION
-        # ==========================================
 
         user_id = user_data.get("id")
 
@@ -252,64 +203,47 @@ def verify():
             ""
         )
 
-
-        # ==========================================
-        # USER ID CHECK
-        # ==========================================
-
         if not user_id:
 
             return jsonify({
-
                 "success": False,
-
                 "status": "FAIL",
-
                 "verified": False,
-
                 "message": "Telegram user ID not found."
-
             }), 400
 
+        # ==========================================
+        # SAVE VERIFIED USER
+        # ==========================================
+
+        verified_users[str(user_id)] = {
+            "verified": True,
+            "user_id": user_id,
+            "first_name": first_name,
+            "username": username,
+            "verified_at": int(time.time())
+        }
+
+        print(
+            "VERIFIED USER:",
+            user_id
+        )
 
         # ==========================================
         # PASS
         # ==========================================
-        #
-        # IMPORTANT:
-        #
-        # Flask DOES NOT:
-        # - send Main Menu
-        # - create keyboard
-        # - send Telegram message
-        # - modify Telebot Creator keyboard
-        #
-        # Telebot Creator handles Main Menu.
-        #
-        # ==========================================
 
         return jsonify({
-
             "success": True,
-
             "status": "PASS",
-
             "verified": True,
-
             "message": "Verification successful.",
-
             "user": {
-
                 "id": user_id,
-
                 "first_name": first_name,
-
                 "username": username
-
             }
-
         }), 200
-
 
     except Exception as error:
 
@@ -319,16 +253,49 @@ def verify():
         )
 
         return jsonify({
-
             "success": False,
-
             "status": "FAIL",
-
             "verified": False,
-
             "message": "Internal server error."
-
         }), 500
+
+
+# ==========================================
+# CHECK VERIFICATION
+# ==========================================
+
+@app.route("/api/check", methods=["GET"])
+def check_verification():
+
+    user_id = request.args.get(
+        "user_id",
+        ""
+    ).strip()
+
+    if not user_id:
+
+        return jsonify({
+            "success": False,
+            "verified": False,
+            "message": "user_id is required."
+        }), 400
+
+    user = verified_users.get(
+        str(user_id)
+    )
+
+    if not user:
+
+        return jsonify({
+            "success": True,
+            "verified": False
+        })
+
+    return jsonify({
+        "success": True,
+        "verified": True,
+        "user": user
+    })
 
 
 # ==========================================
@@ -338,14 +305,11 @@ def verify():
 if __name__ == "__main__":
 
     app.run(
-
         host="0.0.0.0",
-
         port=int(
             os.environ.get(
                 "PORT",
                 5000
             )
         )
-
-            )
+        )
