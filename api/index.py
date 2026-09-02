@@ -10,15 +10,14 @@ from flask import Flask, request, jsonify, send_from_directory
 app = Flask(__name__)
 
 BOT_TOKEN = os.environ.get("BOT_TOKEN", "").strip()
+
 MAX_AUTH_AGE = 3600
 
 
 # ==========================================
-# IN-MEMORY VERIFIED USERS
+# VERIFIED USERS
 # ==========================================
-# Important:
-# Vercel serverless instances are not permanent.
-# For production, replace this with Firebase/Supabase/etc.
+
 verified_users = {}
 
 
@@ -109,9 +108,7 @@ def validate_init_data(init_data):
 def home():
 
     base_dir = os.path.dirname(
-        os.path.dirname(
-            os.path.abspath(__file__)
-        )
+        os.path.abspath(__file__)
     )
 
     return send_from_directory(
@@ -172,24 +169,33 @@ def verify():
                 "message": error
             }), 403
 
-        user_data = {}
+        user_raw = telegram_data.get(
+            "user"
+        )
 
-        if "user" in telegram_data:
+        if not user_raw:
 
-            try:
+            return jsonify({
+                "success": False,
+                "status": "FAIL",
+                "verified": False,
+                "message": "Telegram user data not found."
+            }), 400
 
-                user_data = json.loads(
-                    telegram_data["user"]
-                )
+        try:
 
-            except Exception:
+            user_data = json.loads(
+                user_raw
+            )
 
-                return jsonify({
-                    "success": False,
-                    "status": "FAIL",
-                    "verified": False,
-                    "message": "Invalid Telegram user data."
-                }), 400
+        except Exception:
+
+            return jsonify({
+                "success": False,
+                "status": "FAIL",
+                "verified": False,
+                "message": "Invalid Telegram user data."
+            }), 400
 
         user_id = user_data.get("id")
 
@@ -212,8 +218,9 @@ def verify():
                 "message": "Telegram user ID not found."
             }), 400
 
+
         # ==========================================
-        # SAVE VERIFIED USER
+        # SAVE PASS
         # ==========================================
 
         verified_users[str(user_id)] = {
@@ -225,12 +232,13 @@ def verify():
         }
 
         print(
-            "VERIFIED USER:",
+            "VERIFICATION PASS:",
             user_id
         )
 
+
         # ==========================================
-        # PASS
+        # RETURN PASS
         # ==========================================
 
         return jsonify({
@@ -245,6 +253,7 @@ def verify():
             }
         }), 200
 
+
     except Exception as error:
 
         print(
@@ -254,7 +263,7 @@ def verify():
 
         return jsonify({
             "success": False,
-            "status": "FAIL",
+            "status": "ERROR",
             "verified": False,
             "message": "Internal server error."
         }), 500
@@ -276,30 +285,44 @@ def check_verification():
 
         return jsonify({
             "success": False,
+            "status": "ERROR",
             "verified": False,
             "message": "user_id is required."
         }), 400
+
 
     user = verified_users.get(
         str(user_id)
     )
 
+
+    # ==========================================
+    # USER NOT VERIFIED
+    # ==========================================
+
     if not user:
 
         return jsonify({
             "success": True,
+            "status": "NOT_VERIFIED",
             "verified": False
-        })
+        }), 200
+
+
+    # ==========================================
+    # VERIFIED
+    # ==========================================
 
     return jsonify({
         "success": True,
+        "status": "PASS",
         "verified": True,
         "user": user
-    })
+    }), 200
 
 
 # ==========================================
-# VERCEL
+# RUN
 # ==========================================
 
 if __name__ == "__main__":
