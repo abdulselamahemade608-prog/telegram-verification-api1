@@ -1,163 +1,143 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">
 
-<head>
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
 
-    <meta charset="UTF-8">
+<title>Telegram Verification</title>
 
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
 
-    <title>Telegram Verification</title>
+<style>
 
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+    }
 
-    <style>
+    body {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        font-family: Arial, sans-serif;
+        background: #f4f7fb;
+        color: #17212b;
+    }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+    .container {
+        width: 100%;
+        max-width: 420px;
+        background: white;
+        border-radius: 24px;
+        padding: 30px 22px;
+        text-align: center;
+        box-shadow: 0 10px 35px rgba(0,0,0,.10);
+    }
 
-        body {
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            font-family: Arial, sans-serif;
-            background: #f4f7fb;
-            color: #17212b;
-        }
+    .logo {
+        width: 90px;
+        height: 90px;
+        margin: 0 auto 20px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #229ed9;
+        color: white;
+        font-size: 42px;
+    }
 
-        .container {
-            width: 100%;
-            max-width: 420px;
-            background: white;
-            border-radius: 24px;
-            padding: 30px 22px;
-            text-align: center;
-            box-shadow: 0 10px 35px rgba(0,0,0,.10);
-        }
+    h1 {
+        font-size: 25px;
+        margin-bottom: 10px;
+    }
 
-        .logo {
-            width: 90px;
-            height: 90px;
-            margin: 0 auto 20px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: #229ed9;
-            color: white;
-            font-size: 42px;
-        }
+    .description {
+        color: #687684;
+        line-height: 1.6;
+        margin-bottom: 25px;
+    }
 
-        h1 {
-            font-size: 25px;
-            margin-bottom: 10px;
-        }
+    .verify-btn {
+        width: 100%;
+        border: none;
+        border-radius: 14px;
+        padding: 15px;
+        font-size: 17px;
+        font-weight: bold;
+        cursor: pointer;
+        background: #229ed9;
+        color: white;
+    }
 
-        .description {
-            color: #687684;
-            line-height: 1.6;
-            margin-bottom: 25px;
-        }
+    .verify-btn:disabled {
+        opacity: .6;
+        cursor: not-allowed;
+    }
 
-        .verify-btn {
-            width: 100%;
-            border: none;
-            border-radius: 14px;
-            padding: 15px;
-            font-size: 17px;
-            font-weight: bold;
-            cursor: pointer;
-            background: #229ed9;
-            color: white;
-        }
+    .status {
+        display: none;
+        margin-top: 22px;
+        padding: 18px;
+        border-radius: 15px;
+        line-height: 1.6;
+    }
 
-        .verify-btn:disabled {
-            opacity: .6;
-        }
+    .loading {
+        display: block;
+        background: #eef7fc;
+        color: #1877a8;
+    }
 
-        .status {
-            display: none;
-            margin-top: 22px;
-            padding: 18px;
-            border-radius: 15px;
-            line-height: 1.6;
-        }
+    .success {
+        display: block;
+        background: #edf9f0;
+        color: #218838;
+    }
 
-        .loading {
-            display: block;
-            background: #eef7fc;
-            color: #1877a8;
-        }
+    .error {
+        display: block;
+        background: #fff0f0;
+        color: #d93025;
+    }
 
-        .success {
-            display: block;
-            background: #edf9f0;
-            color: #218838;
-        }
+    .icon {
+        font-size: 38px;
+        margin-bottom: 8px;
+    }
 
-        .error {
-            display: block;
-            background: #fff0f0;
-            color: #d93025;
-        }
+</style>
 
-        .icon {
-            font-size: 38px;
-            margin-bottom: 8px;
-        }
-
-    </style>
-
-</head>
-
-
-<body>
-
-<div class="container">
-
-    <div class="logo">
-        ✓
-    </div>
-
-    <h1>Telegram Verification</h1>
-
-    <p class="description">
-        Verify your Telegram account securely.
-    </p>
-
-    <button
-        id="verifyBtn"
-        class="verify-btn"
-        onclick="startVerification()"
-    >
-        🔐 Verify Account
-    </button>
-
-    <div
-        id="status"
-        class="status"
-    ></div>
-
+</head><body><div class="container"><div class="logo">
+    ✓
 </div>
 
+<h1>Telegram Verification</h1>
 
-<script>
+<p class="description">
+    Verify your Telegram account securely.
+</p>
+
+<button
+    id="verifyBtn"
+    class="verify-btn"
+    onclick="startVerification()"
+>
+    🔐 Verify Account
+</button>
+
+<div
+    id="status"
+    class="status"
+></div>
+
+</div><script>
 
 const tg = window.Telegram?.WebApp;
-
-if (tg) {
-    tg.ready();
-    tg.expand();
-}
-
 
 const verifyBtn =
     document.getElementById("verifyBtn");
@@ -165,6 +145,23 @@ const verifyBtn =
 const statusBox =
     document.getElementById("status");
 
+
+/* ==========================================
+   TELEGRAM INIT
+========================================== */
+
+if (tg) {
+
+    tg.ready();
+
+    tg.expand();
+
+}
+
+
+/* ==========================================
+   STATUS MESSAGE
+========================================== */
 
 function showStatus(
     type,
@@ -181,8 +178,13 @@ function showStatus(
         <strong>${title}</strong>
         <div>${message}</div>
     `;
+
 }
 
+
+/* ==========================================
+   START VERIFICATION
+========================================== */
 
 async function startVerification() {
 
@@ -191,6 +193,10 @@ async function startVerification() {
     verifyBtn.innerText =
         "⏳ Verifying...";
 
+
+    /* ==========================================
+       CHECK TELEGRAM
+    ========================================== */
 
     if (!tg) {
 
@@ -209,6 +215,10 @@ async function startVerification() {
         return;
     }
 
+
+    /* ==========================================
+       GET TELEGRAM INIT DATA
+    ========================================== */
 
     const initData =
         tg.initData;
@@ -232,6 +242,10 @@ async function startVerification() {
     }
 
 
+    /* ==========================================
+       SEND TO FLASK
+    ========================================== */
+
     try {
 
         const response = await fetch(
@@ -245,15 +259,25 @@ async function startVerification() {
                 },
 
                 body: JSON.stringify({
+
                     initData: initData
+
                 })
             }
         );
 
 
+        /* ==========================================
+           READ SERVER RESPONSE
+        ========================================== */
+
         const result =
             await response.json();
 
+
+        /* ==========================================
+           VERIFICATION FAILED
+        ========================================== */
 
         if (
             !response.ok ||
@@ -277,54 +301,77 @@ async function startVerification() {
         }
 
 
-        // ==========================================
-        // PASS
-        // ==========================================
+        /* ==========================================
+           VERIFICATION PASS
+        ========================================== */
 
-        showStatus(
-            "success",
-            "✅",
-            "Verification Successful!",
-            "Your account has been verified successfully."
+        if (
+            result.status === "PASS" &&
+            result.verified === true
+        ) {
+
+            showStatus(
+                "success",
+                "✅",
+                "Verification Successful!",
+                "Your Telegram account has been verified successfully."
+            );
+
+            verifyBtn.style.display =
+                "none";
+
+
+            /* ==========================================
+               CLOSE MINI APP
+            ========================================== */
+
+            setTimeout(() => {
+
+                try {
+
+                    tg.close();
+
+                } catch (error) {
+
+                    console.log(
+                        "Telegram close error:",
+                        error
+                    );
+
+                }
+
+            }, 1500);
+
+        }
+
+    }
+
+
+    /* ==========================================
+       CONNECTION ERROR
+    ========================================== */
+
+    catch (error) {
+
+        console.error(
+            "Verification error:",
+            error
         );
-
-        verifyBtn.style.display =
-            "none";
-
-
-        // Close Mini App.
-        // Telebot Creator will handle the next step.
-        setTimeout(() => {
-
-            try {
-                tg.close();
-            } catch (e) {
-                console.log(e);
-            }
-
-        }, 1500);
-
-
-    } catch (error) {
-
-        console.error(error);
 
         showStatus(
             "error",
             "⚠️",
             "Connection Error",
-            "Could not connect to the server."
+            "Could not connect to the verification server."
         );
 
         verifyBtn.disabled = false;
 
         verifyBtn.innerText =
             "🔐 Try Again";
+
     }
 
 }
 
-</script>
-
-</body>
-</html>
+</script></body></html>
