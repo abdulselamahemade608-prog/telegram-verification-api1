@@ -4,32 +4,28 @@ import hashlib
 import urllib.parse
 import json
 import time
+import requests
 
 from flask import Flask, request, jsonify, send_from_directory
 
 app = Flask(__name__)
 
 
-# ==================================================
+# ==========================================
 # TELEGRAM INIT DATA VALIDATION
-# ==================================================
+# ==========================================
 
 def validate_init_data(init_data):
 
     bot_token = os.environ.get("BOT_TOKEN", "").strip()
 
-    # BOT TOKEN NOT FOUND
     if not bot_token:
-        return None, "BOT_TOKEN is not configured on Vercel."
+        return None, "BOT_TOKEN is not configured."
 
     if not init_data:
         return None, "Telegram initData is empty."
 
     try:
-
-        # ------------------------------------------
-        # Parse Telegram initData
-        # ------------------------------------------
 
         parsed = urllib.parse.parse_qsl(
             init_data,
@@ -38,27 +34,15 @@ def validate_init_data(init_data):
 
         data = dict(parsed)
 
-        # ------------------------------------------
-        # Get Telegram hash
-        # ------------------------------------------
-
         received_hash = data.pop("hash", None)
 
         if not received_hash:
             return None, "Telegram hash is missing."
 
-        # ------------------------------------------
-        # Create data-check-string
-        # ------------------------------------------
-
         data_check_string = "\n".join(
             f"{key}={value}"
             for key, value in sorted(data.items())
         )
-
-        # ------------------------------------------
-        # Telegram secret key
-        # ------------------------------------------
 
         secret_key = hmac.new(
             key=b"WebAppData",
@@ -66,19 +50,11 @@ def validate_init_data(init_data):
             digestmod=hashlib.sha256
         ).digest()
 
-        # ------------------------------------------
-        # Calculate hash
-        # ------------------------------------------
-
         calculated_hash = hmac.new(
             key=secret_key,
             msg=data_check_string.encode("utf-8"),
             digestmod=hashlib.sha256
         ).hexdigest()
-
-        # ------------------------------------------
-        # Compare
-        # ------------------------------------------
 
         if not hmac.compare_digest(
             calculated_hash,
@@ -86,9 +62,9 @@ def validate_init_data(init_data):
         ):
             return None, "Telegram hash validation failed."
 
-        # ------------------------------------------
-        # Optional auth_date check
-        # ------------------------------------------
+        # ==================================
+        # AUTH DATE CHECK
+        # ==================================
 
         auth_date = data.get("auth_date")
 
@@ -98,9 +74,8 @@ def validate_init_data(init_data):
 
                 auth_time = int(auth_date)
 
-                # Reject data older than 1 hour
                 if time.time() - auth_time > 3600:
-                    return None, "Telegram verification data has expired."
+                    return None, "Verification data expired."
 
             except ValueError:
 
@@ -112,12 +87,140 @@ def validate_init_data(init_data):
 
         print("VALIDATION ERROR:", error)
 
-        return None, "Server validation error."
+        return None, "Validation error."
 
 
-# ==================================================
+# ==========================================
+# SEND MAIN MENU
+# ==========================================
+
+def send_main_menu(chat_id, first_name):
+
+    bot_token = os.environ.get(
+        "BOT_TOKEN",
+        ""
+    ).strip()
+
+    if not bot_token:
+        return False
+
+    # ======================================
+    # PREMIUM EMOJI IDS
+    # ======================================
+
+    SELAM_EMOJI = "5859691201250201986"
+    MONEY_EMOJI = "6190336264940559752"
+    LINK_EMOJI = "5379742233853451967"
+    WITHDRAW_EMOJI = "6053003027793578665"
+
+    # ======================================
+    # MAIN MENU TEXT
+    # ======================================
+
+    main_text = (
+        f"<tg-emoji emoji-id='{SELAM_EMOJI}'>👋</tg-emoji> "
+        f"<b>ሰላም {first_name}!</b>\n\n"
+
+        "🎉 <b>እንኳን ወደ ቦቱ በሰላም መጣህ!</b>\n\n"
+
+        "💰 <b>Balance:</b> 0 Birr\n"
+        "💎 <b>TON:</b> 0.0000 TON\n\n"
+
+        "👇 <b>ከታች ያሉትን options ተጠቀም።</b>"
+    )
+
+    # ======================================
+    # MAIN MENU BUTTONS
+    # ======================================
+
+    keyboard = {
+        "inline_keyboard": [
+
+            [
+                {
+                    "text": "💰 Balance",
+                    "callback_data": "balance",
+                    "style": "success",
+                    "icon_custom_emoji_id": MONEY_EMOJI
+                },
+                {
+                    "text": "💸 Withdraw",
+                    "callback_data": "withdraw",
+                    "style": "danger",
+                    "icon_custom_emoji_id": WITHDRAW_EMOJI
+                }
+            ],
+
+            [
+                {
+                    "text": "🏆 Leaderboard",
+                    "callback_data": "leaderboard",
+                    "style": "primary",
+                    "icon_custom_emoji_id": MONEY_EMOJI
+                },
+                {
+                    "text": "👛 Set Wallet",
+                    "callback_data": "set_wallet",
+                    "style": "primary",
+                    "icon_custom_emoji_id": MONEY_EMOJI
+                }
+            ],
+
+            [
+                {
+                    "text": "👥 Invite",
+                    "callback_data": "invite",
+                    "style": "success",
+                    "icon_custom_emoji_id": LINK_EMOJI
+                }
+            ]
+        ]
+    }
+
+    # ======================================
+    # TELEGRAM BOT API
+    # ======================================
+
+    url = (
+        f"https://api.telegram.org/bot"
+        f"{bot_token}/sendMessage"
+    )
+
+    payload = {
+        "chat_id": chat_id,
+        "text": main_text,
+        "parse_mode": "HTML",
+        "reply_markup": keyboard
+    }
+
+    try:
+
+        response = requests.post(
+            url,
+            json=payload,
+            timeout=15
+        )
+
+        print(
+            "TELEGRAM RESPONSE:",
+            response.text
+        )
+
+        return response.ok
+
+    except Exception as error:
+
+        print(
+            "SEND MENU ERROR:",
+            error
+        )
+
+        return False
+
+
+# ==========================================
 # HOME
-# ==================================================
+# ==========================================
 
 @app.route("/", methods=["GET"])
 def home():
@@ -134,27 +237,30 @@ def home():
     )
 
 
-# ==================================================
-# API STATUS
-# ==================================================
+# ==========================================
+# STATUS
+# ==========================================
 
 @app.route("/api/status", methods=["GET"])
 def api_status():
 
-    bot_token_exists = bool(
-        os.environ.get("BOT_TOKEN", "").strip()
+    configured = bool(
+        os.environ.get(
+            "BOT_TOKEN",
+            ""
+        ).strip()
     )
 
     return jsonify({
         "service": "Telegram Verification API",
         "status": "online",
-        "bot_token_configured": bot_token_exists
+        "bot_token_configured": configured
     })
 
 
-# ==================================================
+# ==========================================
 # VERIFY
-# ==================================================
+# ==========================================
 
 @app.route("/api/verify", methods=["POST"])
 def verify():
@@ -178,10 +284,6 @@ def verify():
             ""
         )
 
-        # ------------------------------------------
-        # Validate
-        # ------------------------------------------
-
         telegram_data, error = validate_init_data(
             init_data
         )
@@ -194,9 +296,9 @@ def verify():
                 "message": error
             }), 403
 
-        # ------------------------------------------
-        # Get user
-        # ------------------------------------------
+        # ==================================
+        # GET TELEGRAM USER
+        # ==================================
 
         user_data = {}
 
@@ -212,9 +314,7 @@ def verify():
 
                 user_data = {}
 
-        user_id = user_data.get(
-            "id"
-        )
+        user_id = user_data.get("id")
 
         first_name = user_data.get(
             "first_name",
@@ -226,9 +326,34 @@ def verify():
             ""
         )
 
-        # ------------------------------------------
+        if not user_id:
+
+            return jsonify({
+                "success": False,
+                "status": "FAIL",
+                "message": "Telegram user ID not found."
+            }), 400
+
+        # ==================================
+        # SEND MAIN MENU TO BOT
+        # ==================================
+
+        menu_sent = send_main_menu(
+            user_id,
+            first_name
+        )
+
+        if not menu_sent:
+
+            return jsonify({
+                "success": False,
+                "status": "FAIL",
+                "message": "Verification passed but Main Menu could not be sent."
+            }), 500
+
+        # ==================================
         # SUCCESS
-        # ------------------------------------------
+        # ==================================
 
         return jsonify({
 
@@ -236,23 +361,25 @@ def verify():
 
             "status": "PASS",
 
-            "message": "Verification successful.",
+            "message": (
+                "Verification successful. "
+                "Main Menu sent."
+            ),
 
             "user": {
-
                 "id": user_id,
-
                 "first_name": first_name,
-
                 "username": username
-
             }
 
         }), 200
 
     except Exception as error:
 
-        print("VERIFY ERROR:", error)
+        print(
+            "VERIFY ERROR:",
+            error
+        )
 
         return jsonify({
 
@@ -265,9 +392,9 @@ def verify():
         }), 500
 
 
-# ==================================================
-# RUN LOCAL
-# ==================================================
+# ==========================================
+# LOCAL RUN
+# ==========================================
 
 if __name__ == "__main__":
 
@@ -279,4 +406,4 @@ if __name__ == "__main__":
                 5000
             )
         )
-        )
+    )
