@@ -182,6 +182,8 @@ def send_main_menu(
             [
                 {
                     "text": "💰 Balance"
+                    "style": "success"
+                    
                 },
                 {
                     "text": "💸 Withdraw"
