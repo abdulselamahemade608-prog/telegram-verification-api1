@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
+
     <meta charset="UTF-8">
 
     <meta
@@ -13,6 +15,7 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
     <style>
+
         * {
             box-sizing: border-box;
             margin: 0;
@@ -33,11 +36,11 @@
         .container {
             width: 100%;
             max-width: 420px;
-            background: #ffffff;
+            background: white;
             border-radius: 24px;
             padding: 30px 22px;
             text-align: center;
-            box-shadow: 0 10px 35px rgba(0, 0, 0, 0.10);
+            box-shadow: 0 10px 35px rgba(0,0,0,.10);
         }
 
         .logo {
@@ -77,8 +80,7 @@
         }
 
         .verify-btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
+            opacity: .6;
         }
 
         .status {
@@ -112,13 +114,10 @@
             margin-bottom: 8px;
         }
 
-        .small {
-            margin-top: 18px;
-            color: #8a96a3;
-            font-size: 12px;
-        }
     </style>
+
 </head>
+
 
 <body>
 
@@ -132,7 +131,6 @@
 
     <p class="description">
         Verify your Telegram account securely.
-        Press the button below to continue.
     </p>
 
     <button
@@ -143,239 +141,188 @@
         🔐 Verify Account
     </button>
 
-    <div id="status" class="status"></div>
-
-    <div class="small">
-        Secure Telegram Web App Verification
-    </div>
+    <div
+        id="status"
+        class="status"
+    ></div>
 
 </div>
 
 
 <script>
 
-    // ==========================================
-    // TELEGRAM WEB APP
-    // ==========================================
+const tg = window.Telegram?.WebApp;
 
-    const tg = window.Telegram?.WebApp;
-
-    if (tg) {
-        tg.ready();
-        tg.expand();
-    }
+if (tg) {
+    tg.ready();
+    tg.expand();
+}
 
 
-    // ==========================================
-    // ELEMENTS
-    // ==========================================
+const verifyBtn =
+    document.getElementById("verifyBtn");
 
-    const verifyBtn =
-        document.getElementById("verifyBtn");
-
-    const statusBox =
-        document.getElementById("status");
+const statusBox =
+    document.getElementById("status");
 
 
-    // ==========================================
-    // STATUS FUNCTION
-    // ==========================================
+function showStatus(
+    type,
+    icon,
+    title,
+    message
+) {
 
-    function showStatus(type, icon, title, message) {
+    statusBox.className =
+        "status " + type;
 
-        statusBox.className =
-            "status " + type;
-
-        statusBox.innerHTML = `
-            <div class="icon">${icon}</div>
-
-            <strong>${title}</strong>
-
-            <div>${message}</div>
-        `;
-    }
+    statusBox.innerHTML = `
+        <div class="icon">${icon}</div>
+        <strong>${title}</strong>
+        <div>${message}</div>
+    `;
+}
 
 
-    // ==========================================
-    // START VERIFICATION
-    // ==========================================
+async function startVerification() {
 
-    async function startVerification() {
+    verifyBtn.disabled = true;
 
-        verifyBtn.disabled = true;
+    verifyBtn.innerText =
+        "⏳ Verifying...";
 
-        verifyBtn.innerText =
-            "⏳ Verifying...";
+
+    if (!tg) {
 
         showStatus(
-            "loading",
-            "🔐",
-            "Verification in progress",
-            "Please wait..."
+            "error",
+            "❌",
+            "Telegram Required",
+            "Open this page inside Telegram."
+        );
+
+        verifyBtn.disabled = false;
+
+        verifyBtn.innerText =
+            "🔐 Verify Account";
+
+        return;
+    }
+
+
+    const initData =
+        tg.initData;
+
+
+    if (!initData) {
+
+        showStatus(
+            "error",
+            "❌",
+            "Verification Failed",
+            "Telegram verification data is missing."
+        );
+
+        verifyBtn.disabled = false;
+
+        verifyBtn.innerText =
+            "🔐 Try Again";
+
+        return;
+    }
+
+
+    try {
+
+        const response = await fetch(
+            "/api/verify",
+            {
+                method: "POST",
+
+                headers: {
+                    "Content-Type":
+                        "application/json"
+                },
+
+                body: JSON.stringify({
+                    initData: initData
+                })
+            }
         );
 
 
-        // ==========================================
-        // CHECK TELEGRAM
-        // ==========================================
-
-        if (!tg) {
-
-            showStatus(
-                "error",
-                "❌",
-                "Telegram Required",
-                "Please open this page inside Telegram."
-            );
-
-            verifyBtn.disabled = false;
-
-            verifyBtn.innerText =
-                "🔐 Verify Account";
-
-            return;
-        }
+        const result =
+            await response.json();
 
 
-        // ==========================================
-        // GET INIT DATA
-        // ==========================================
-
-        const initData = tg.initData;
-
-
-        if (!initData) {
+        if (
+            !response.ok ||
+            result.status !== "PASS"
+        ) {
 
             showStatus(
                 "error",
                 "❌",
                 "Verification Failed",
-                "Telegram verification data is missing."
-            );
-
-            verifyBtn.disabled = false;
-
-            verifyBtn.innerText =
-                "🔐 Verify Account";
-
-            return;
-        }
-
-
-        // ==========================================
-        // SEND TO FLASK
-        // ==========================================
-
-        try {
-
-            const response = await fetch(
-                "/api/verify",
-                {
-                    method: "POST",
-
-                    headers: {
-                        "Content-Type":
-                            "application/json"
-                    },
-
-                    body: JSON.stringify({
-                        initData: initData
-                    })
-                }
-            );
-
-
-            const result =
-                await response.json();
-
-
-            // ==========================================
-            // FAIL
-            // ==========================================
-
-            if (
-                !response.ok ||
-                result.status !== "PASS"
-            ) {
-
-                showStatus(
-                    "error",
-                    "❌",
-                    "Verification Failed",
-                    result.message ||
-                    "Telegram verification failed."
-                );
-
-                verifyBtn.disabled = false;
-
-                verifyBtn.innerText =
-                    "🔐 Try Again";
-
-                return;
-            }
-
-
-            // ==========================================
-            // PASS
-            // ==========================================
-
-            showStatus(
-                "success",
-                "✅",
-                "Verification Successful!",
-                "Your Telegram account has been verified successfully."
-            );
-
-
-            verifyBtn.style.display =
-                "none";
-
-
-            // ==========================================
-            // SEND RESULT TO TELEBOT CREATOR
-            // ==========================================
-            //
-            // NOTE:
-            // Inline Web Apps cannot use tg.sendData()
-            // like Keyboard-button Web Apps.
-            //
-            // Therefore Main Menu is NOT created here.
-            //
-            // Telebot Creator must handle the next step.
-            // ==========================================
-
-
-            setTimeout(() => {
-
-                try {
-                    tg.close();
-                } catch (e) {
-                    console.log(e);
-                }
-
-            }, 1800);
-
-
-        } catch (error) {
-
-            console.error(
-                "Verification error:",
-                error
-            );
-
-            showStatus(
-                "error",
-                "⚠️",
-                "Connection Error",
-                "Could not connect to the verification server."
+                result.message ||
+                "Verification failed."
             );
 
             verifyBtn.disabled = false;
 
             verifyBtn.innerText =
                 "🔐 Try Again";
+
+            return;
         }
+
+
+        // ==========================================
+        // PASS
+        // ==========================================
+
+        showStatus(
+            "success",
+            "✅",
+            "Verification Successful!",
+            "Your account has been verified successfully."
+        );
+
+        verifyBtn.style.display =
+            "none";
+
+
+        // Close Mini App.
+        // Telebot Creator will handle the next step.
+        setTimeout(() => {
+
+            try {
+                tg.close();
+            } catch (e) {
+                console.log(e);
+            }
+
+        }, 1500);
+
+
+    } catch (error) {
+
+        console.error(error);
+
+        showStatus(
+            "error",
+            "⚠️",
+            "Connection Error",
+            "Could not connect to the server."
+        );
+
+        verifyBtn.disabled = false;
+
+        verifyBtn.innerText =
+            "🔐 Try Again";
     }
+
+}
 
 </script>
 
