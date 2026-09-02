@@ -1,406 +1,276 @@
 <!DOCTYPE html>
-
 <html lang="en">
-
 <head>
-
-<meta charset="UTF-8">
-
-<meta
-    name="viewport"
-    content="width=device-width,
-    initial-scale=1.0,
-    maximum-scale=1.0,
-    user-scalable=no"
->
-
-<title>Verification</title>
-
-<script src="https://telegram.org/js/telegram-web-app.js"></script>
-
-<style>
-
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-}
-
-body {
-
-    min-height: 100vh;
-
-    font-family:
-        Arial,
-        sans-serif;
-
-    background:
-        #1f2d3d;
-
-    display: flex;
-
-    justify-content: center;
-
-    align-items: center;
-
-    padding: 20px;
-
-}
-
-.container {
-
-    width: 100%;
-
-    max-width: 440px;
-
-    background:
-        #111c27;
-
-    border-radius: 28px;
-
-    padding:
-        42px 22px 30px;
-
-    text-align: center;
-
-    box-shadow:
-        0 20px 50px
-        rgba(0,0,0,0.25);
-
-}
-
-.logo {
-
-    width: 90px;
-
-    height: 90px;
-
-    border-radius: 50%;
-
-    background:
-        #eef6ff;
-
-    display: flex;
-
-    align-items: center;
-
-    justify-content: center;
-
-    margin:
-        0 auto 25px;
-
-    font-size: 45px;
-
-}
-
-h1 {
-
-    color: white;
-
-    font-size: 36px;
-
-    margin-bottom: 15px;
-
-}
-
-.subtitle {
-
-    color: #7d8999;
-
-    font-size: 19px;
-
-    line-height: 1.6;
-
-    margin-bottom: 28px;
-
-}
-
-.user-card {
-
-    background:
-        #1b2733;
-
-    border-radius: 20px;
-
-    padding: 20px;
-
-    margin-bottom: 25px;
-
-    color: white;
-
-}
-
-.user-name {
-
-    font-size: 23px;
-
-    font-weight: bold;
-
-    margin-bottom: 8px;
-
-}
-
-.username {
-
-    font-size: 18px;
-
-    color: #e5e7eb;
-
-}
-
-.verify-btn {
-
-    width: 100%;
-
-    border: none;
-
-    border-radius: 18px;
-
-    padding: 18px;
-
-    background:
-        #229ed9;
-
-    color: white;
-
-    font-size: 22px;
-
-    font-weight: bold;
-
-    cursor: pointer;
-
-}
-
-.verify-btn:disabled {
-
-    opacity: 0.65;
-
-    cursor: default;
-
-}
-
-.status {
-
-    display: none;
-
-    margin-top: 22px;
-
-    padding: 18px;
-
-    border-radius: 18px;
-
-    font-size: 18px;
-
-    line-height: 1.5;
-
-}
-
-.loading {
-
-    display: block;
-
-    background: #25313d;
-
-    color: #d0d5dd;
-
-}
-
-.success {
-
-    display: block;
-
-    background: #063b2a;
-
-    color: #6ce9a6;
-
-}
-
-.error {
-
-    display: block;
-
-    background: #421d20;
-
-    color: #ffb4b4;
-
-}
-
-</style>
-
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Telegram Verification</title>
+
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            background: #f4f7fb;
+            color: #17212b;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 420px;
+            background: #ffffff;
+            border-radius: 24px;
+            padding: 30px 22px;
+            text-align: center;
+            box-shadow: 0 10px 35px rgba(0, 0, 0, 0.10);
+        }
+
+        .logo {
+            width: 90px;
+            height: 90px;
+            margin: 0 auto 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #229ed9;
+            color: white;
+            font-size: 42px;
+        }
+
+        h1 {
+            font-size: 25px;
+            margin-bottom: 10px;
+        }
+
+        .description {
+            color: #687684;
+            line-height: 1.6;
+            margin-bottom: 25px;
+        }
+
+        .verify-btn {
+            width: 100%;
+            border: none;
+            border-radius: 14px;
+            padding: 15px;
+            font-size: 17px;
+            font-weight: bold;
+            cursor: pointer;
+            background: #229ed9;
+            color: white;
+        }
+
+        .verify-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .status {
+            display: none;
+            margin-top: 22px;
+            padding: 18px;
+            border-radius: 15px;
+            line-height: 1.6;
+        }
+
+        .loading {
+            display: block;
+            background: #eef7fc;
+            color: #1877a8;
+        }
+
+        .success {
+            display: block;
+            background: #edf9f0;
+            color: #218838;
+        }
+
+        .error {
+            display: block;
+            background: #fff0f0;
+            color: #d93025;
+        }
+
+        .icon {
+            font-size: 38px;
+            margin-bottom: 8px;
+        }
+
+        .small {
+            margin-top: 18px;
+            color: #8a96a3;
+            font-size: 12px;
+        }
+    </style>
 </head>
-
 
 <body>
 
-
 <div class="container">
 
-
     <div class="logo">
-        🔐
+        ✓
     </div>
 
+    <h1>Telegram Verification</h1>
 
-    <h1>
-        Verification
-    </h1>
-
-
-    <p class="subtitle">
-        Complete the verification below to continue.
+    <p class="description">
+        Verify your Telegram account securely.
+        Press the button below to continue.
     </p>
 
-
-    <div
-        class="user-card"
-        id="userInfo"
-    >
-
-        Loading Telegram account...
-
-    </div>
-
-
     <button
-        class="verify-btn"
         id="verifyBtn"
-        onclick="verifyAccount()"
+        class="verify-btn"
+        onclick="startVerification()"
     >
-
-        ✅ Verify Now
-
+        🔐 Verify Account
     </button>
 
+    <div id="status" class="status"></div>
 
-    <div
-        class="status"
-        id="status"
-    ></div>
-
+    <div class="small">
+        Secure Telegram Web App Verification
+    </div>
 
 </div>
 
 
 <script>
 
+    // ==========================================
+    // TELEGRAM WEB APP
+    // ==========================================
 
-const tg =
-    window.Telegram.WebApp;
+    const tg = window.Telegram?.WebApp;
 
-
-tg.ready();
-
-tg.expand();
-
-
-const user =
-    tg.initDataUnsafe &&
-    tg.initDataUnsafe.user;
-
-
-const userInfo =
-    document.getElementById(
-        "userInfo"
-    );
-
-
-const verifyBtn =
-    document.getElementById(
-        "verifyBtn"
-    );
-
-
-const statusBox =
-    document.getElementById(
-        "status"
-    );
-
-
-// ==========================================
-// SHOW TELEGRAM USER
-// ==========================================
-
-if (user) {
-
-    const firstName =
-        user.first_name ||
-        "User";
-
-    const username =
-        user.username
-        ? "@" + user.username
-        : "No username";
-
-    userInfo.innerHTML =
-
-        "<div class='user-name'>👤 "
-        + escapeHTML(firstName)
-        + "</div>"
-
-        +
-
-        "<div class='username'>"
-        + escapeHTML(username)
-        + "</div>";
-
-} else {
-
-    userInfo.innerHTML =
-        "⚠️ Open this Mini App from Telegram.";
-
-}
-
-
-// ==========================================
-// VERIFY ACCOUNT
-// ==========================================
-
-async function verifyAccount() {
-
-
-    // --------------------------------------
-    // Check Telegram initData
-    // --------------------------------------
-
-    if (!tg.initData) {
-
-        showStatus(
-            "❌ Telegram verification data was not found.",
-            "error"
-        );
-
-        return;
+    if (tg) {
+        tg.ready();
+        tg.expand();
     }
 
 
-    // --------------------------------------
-    // Loading
-    // --------------------------------------
+    // ==========================================
+    // ELEMENTS
+    // ==========================================
 
-    verifyBtn.disabled = true;
+    const verifyBtn =
+        document.getElementById("verifyBtn");
 
-    verifyBtn.innerText =
-        "⏳ Verifying...";
-
-
-    showStatus(
-        "🔍 Verifying your Telegram account...",
-        "loading"
-    );
+    const statusBox =
+        document.getElementById("status");
 
 
-    try {
+    // ==========================================
+    // STATUS FUNCTION
+    // ==========================================
+
+    function showStatus(type, icon, title, message) {
+
+        statusBox.className =
+            "status " + type;
+
+        statusBox.innerHTML = `
+            <div class="icon">${icon}</div>
+
+            <strong>${title}</strong>
+
+            <div>${message}</div>
+        `;
+    }
 
 
-        // ----------------------------------
-        // Send data to Vercel
-        // ----------------------------------
+    // ==========================================
+    // START VERIFICATION
+    // ==========================================
 
-        const response =
-            await fetch(
+    async function startVerification() {
+
+        verifyBtn.disabled = true;
+
+        verifyBtn.innerText =
+            "⏳ Verifying...";
+
+        showStatus(
+            "loading",
+            "🔐",
+            "Verification in progress",
+            "Please wait..."
+        );
+
+
+        // ==========================================
+        // CHECK TELEGRAM
+        // ==========================================
+
+        if (!tg) {
+
+            showStatus(
+                "error",
+                "❌",
+                "Telegram Required",
+                "Please open this page inside Telegram."
+            );
+
+            verifyBtn.disabled = false;
+
+            verifyBtn.innerText =
+                "🔐 Verify Account";
+
+            return;
+        }
+
+
+        // ==========================================
+        // GET INIT DATA
+        // ==========================================
+
+        const initData = tg.initData;
+
+
+        if (!initData) {
+
+            showStatus(
+                "error",
+                "❌",
+                "Verification Failed",
+                "Telegram verification data is missing."
+            );
+
+            verifyBtn.disabled = false;
+
+            verifyBtn.innerText =
+                "🔐 Verify Account";
+
+            return;
+        }
+
+
+        // ==========================================
+        // SEND TO FLASK
+        // ==========================================
+
+        try {
+
+            const response = await fetch(
                 "/api/verify",
                 {
-
                     method: "POST",
 
                     headers: {
@@ -408,198 +278,106 @@ async function verifyAccount() {
                             "application/json"
                     },
 
-                    body:
-                        JSON.stringify({
-
-                            initData:
-                                tg.initData
-
-                        })
-
+                    body: JSON.stringify({
+                        initData: initData
+                    })
                 }
             );
 
 
-        // ----------------------------------
-        // Read response
-        // ----------------------------------
-
-        const data =
-            await response.json();
+            const result =
+                await response.json();
 
 
-        // ----------------------------------
-        // PASS
-        // ----------------------------------
+            // ==========================================
+            // FAIL
+            // ==========================================
 
-        if (
-            response.ok &&
-            data.success === true &&
-            data.status === "PASS"
-        ) {
+            if (
+                !response.ok ||
+                result.status !== "PASS"
+            ) {
 
-
-            showStatus(
-                "✅ Verification successful!",
-                "success"
-            );
-
-
-            verifyBtn.innerText =
-                "✅ Verified";
-
-
-            // --------------------------------
-            // Send PASS to Telegram
-            // --------------------------------
-
-            try {
-
-                tg.sendData(
-                    JSON.stringify({
-
-                        status:
-                            "PASS",
-
-                        user_id:
-                            user?.id || null
-
-                    })
+                showStatus(
+                    "error",
+                    "❌",
+                    "Verification Failed",
+                    result.message ||
+                    "Telegram verification failed."
                 );
 
-            } catch (e) {
+                verifyBtn.disabled = false;
 
-                console.log(
-                    "sendData:",
-                    e
-                );
+                verifyBtn.innerText =
+                    "🔐 Try Again";
 
+                return;
             }
 
 
-        }
-
-        // ----------------------------------
-        // FAIL
-        // ----------------------------------
-
-        else {
-
+            // ==========================================
+            // PASS
+            // ==========================================
 
             showStatus(
-
-                "❌ Verification failed.\n\n"
-                +
-                (
-                    data.message ||
-                    "Please try again."
-                ),
-
-                "error"
-
+                "success",
+                "✅",
+                "Verification Successful!",
+                "Your Telegram account has been verified successfully."
             );
 
 
-            verifyBtn.disabled =
-                false;
+            verifyBtn.style.display =
+                "none";
+
+
+            // ==========================================
+            // SEND RESULT TO TELEBOT CREATOR
+            // ==========================================
+            //
+            // NOTE:
+            // Inline Web Apps cannot use tg.sendData()
+            // like Keyboard-button Web Apps.
+            //
+            // Therefore Main Menu is NOT created here.
+            //
+            // Telebot Creator must handle the next step.
+            // ==========================================
+
+
+            setTimeout(() => {
+
+                try {
+                    tg.close();
+                } catch (e) {
+                    console.log(e);
+                }
+
+            }, 1800);
+
+
+        } catch (error) {
+
+            console.error(
+                "Verification error:",
+                error
+            );
+
+            showStatus(
+                "error",
+                "⚠️",
+                "Connection Error",
+                "Could not connect to the verification server."
+            );
+
+            verifyBtn.disabled = false;
 
             verifyBtn.innerText =
-                "🔄 Try Again";
-
+                "🔐 Try Again";
         }
-
-
     }
-
-    catch (error) {
-
-
-        console.error(
-            "Verification error:",
-            error
-        );
-
-
-        showStatus(
-
-            "⚠️ Connection error.\n"
-            +
-            "Please try again.",
-
-            "error"
-
-        );
-
-
-        verifyBtn.disabled =
-            false;
-
-        verifyBtn.innerText =
-            "🔄 Try Again";
-
-    }
-
-}
-
-
-// ==========================================
-// STATUS
-// ==========================================
-
-function showStatus(
-    text,
-    type
-) {
-
-    statusBox.innerText =
-        text;
-
-    statusBox.className =
-        "status " + type;
-
-}
-
-
-// ==========================================
-// ESCAPE HTML
-// ==========================================
-
-function escapeHTML(
-    value
-) {
-
-    return String(value)
-
-        .replace(
-            /&/g,
-            "&amp;"
-        )
-
-        .replace(
-            /</g,
-            "&lt;"
-        )
-
-        .replace(
-            />/g,
-            "&gt;"
-        )
-
-        .replace(
-            /"/g,
-            "&quot;"
-        )
-
-        .replace(
-            /'/g,
-            "&#039;"
-        );
-
-}
 
 </script>
 
-
 </body>
-
 </html>
